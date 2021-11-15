@@ -1,28 +1,20 @@
-# TO DO items
-# Clean up what is printed
-# remove simple SimpleImputer / NaN value imputation
-
 # install package if necessary
 
 # import libraries
 import pandas as pd
 import numpy as np
-from scipy import stats
-from collections import OrderedDict
 from sklearn.preprocessing import StandardScaler
-import warnings
 import pickle
 
 # file path for project
-file_path = '/Users/Ed/Documents/GitHub/sepsis_ml_omics_msc/' # CHANGE THIS
+file_path = '/Users/Ed/Documents/GitHub/sepsis_ml_omics_msc/scripts/' # CHANGE THIS
 
 # import and check data
 raw_data = pd.read_csv(str(file_path)+'genomic_data.csv')
-print('The number of columns is:  '+str(len(raw_data.columns)))
-print('The number of row is:  '+str(len(raw_data)))
 
 # Eliminate duplicate genes. Testing on various columns, NaN values excluded before looking for duplicates.
 
+print('\nResults of testing for duplicate genes and missing values:\n')
 dup_column = ['NuID', 'Search_Key', 'ILMN_Gene', 'RefSeq_ID', 'Entrez_Gene_ID', 'Probe_Id']
 for column in dup_column:
     data = raw_data.dropna(subset=[column])
@@ -51,8 +43,6 @@ labels = np.asarray(labels)
 
 bool_series_zeros = (df == 0).all(axis=0)
 
-print('The number of features is:  '+str(len(df.columns)))
-print('The number of examples is:  '+str(len(df)))
 print('The number of missing values is:   '+str(df.isnull().sum().sum()))
 print('The number of columns with all zeros is:   '+str(sum(bool_series_zeros)))
 
@@ -77,17 +67,21 @@ def standardise(examples):
     examples_scaled = scaler.fit_transform(examples)
     return examples_scaled
 
+# standardised data set including patient Inf_075
 X_df = standardise(df)
 X_df = pd.DataFrame(X_df, columns=df.columns, index=df.index)
-print(X_df.shape)
 
+# standardised data set excluding patient Inf_075
 X_df_no75 = standardise(df_no75)
 X_df_no75 = pd.DataFrame(X_df_no75, columns=df_no75.columns, index=df_no75.index)
-print(X_df_no75.shape)
 
-# Reduced dataset for code testing
+# Reduced standardised data set for code testing
 X_df_red = X_df.iloc[:, 0:200]
-print(X_df_red.shape)
+
+print('\nDimensions of final pre-processed input data sets:\n')
+print('Shape of stadardised data set including Inf075:   '+str(X_df.shape))
+print('Shape of stadardised data set excluding Inf075:   '+str(X_df_no75.shape))
+print('Shape of standardised testing data set:   '+str(X_df_red.shape))
 
 with open(str(file_path)+'scaled_data.pkl', 'wb') as f:
-    pickle.dump([X_df, X_df_no75, labels, labels_no75], f)
+    pickle.dump([X_df, X_df_no75, X_df_red, gene_df, labels, labels_no75], f)
