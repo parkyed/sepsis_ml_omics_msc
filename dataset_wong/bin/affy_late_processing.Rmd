@@ -1,0 +1,45 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+affymetrix - make sure files are in the same order as the target data file, so that you assign the correct ID to the file.
+
+
+```{r}
+
+## code to get the ensembl_ID mappings
+
+library(biomaRt)
+library(dplyr)
+library(Biobase)
+library(groHMM)
+
+# running these to resolve ssl certificate issues with ensembl
+new_config <- httr::config(ssl_verifypeer = FALSE)
+httr::set_config(new_config, override = FALSE)
+
+# get the vector of gene codes looking for from existing analysis
+## to be updated
+rawdata <- read.csv('~/Documents/GitHub/sepsis_ml_omics_msc/XXXX.csv',header = T)
+affy_codes <- rawdata$Probe_Id
+
+# select the biomaRt database that you want to connect to - basically always "ensembl". creates object
+ensembl <- useMart("ensembl")
+
+# select a dataset within the BioMart database selected with the usemart function. Here selecting human genes out of >200 options.
+ensembl <- useDataset("hsapiens_gene_ensembl", mart=ensembl)
+
+# query the selected database - this is the main query call. # not used: values = featureNames(exp.norm).
+
+# NOTE THIS NEEDS TO BE CHANGED - MAKE A SEPARATE CALL FOR AFFY AND ILLUMINA, SO THAT THE OUTPUTS ARE COMPACT
+annotationDF <- getBM(attributes = c('affy_hg_u133_plus_2', 'ensembl_gene_id', 'external_gene_name', 'description', 'gene_biotype'), filters = 'affy_hg_u133_plus_2', values = affy_codes, mart = ensembl)
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
